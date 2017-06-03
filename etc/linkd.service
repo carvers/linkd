@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Environment=GOPATH=/home/paddy/go
-ExecStart=/home/paddy/go/bin/linkd -file=/home/paddy/linkd/mappings/carvers.link -file=/home/paddy/linkd/mappings/link.carvers.co -file=/home/paddy/linkd/mappings/links.carvers.co -file=/home/paddy/linkd/mappings/www.links.carvers.co
+ExecStart=/usr/local/bin/linkd -file=/home/paddy/linkd/mappings/carvers.link -file=/home/paddy/linkd/mappings/link.carvers.co -file=/home/paddy/linkd/mappings/links.carvers.co -file=/home/paddy/linkd/mappings/www.links.carvers.co
 Restart=on-failure
 
 [Install]
