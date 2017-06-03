@@ -1,0 +1,11 @@
+[Unit]
+Description=Link redirection
+After=network.target
+
+[Service]
+Environment=GOPATH=/home/paddy/go
+ExecStart=/home/paddy/go/bin/linkd -file=/usr/local/etc/linkd/links.carvers.house
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

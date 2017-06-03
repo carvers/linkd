@@ -1,0 +1,7 @@
+carvers.link {
+	errors stdout
+	log stdout
+	proxy / localhost:9876/ {
+		transparent
+	}
+}
