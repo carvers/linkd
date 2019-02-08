@@ -4,34 +4,32 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"strings"
 
 	"cloud.google.com/go/datastore"
 	"github.com/carvers/linkd/storers"
 	"google.golang.org/api/option"
 )
 
-type stringSlice []string
-
-func (s *stringSlice) String() string {
-	return strings.Join(*s, ", ")
-}
-
-func (s *stringSlice) Set(value string) error {
-	*s = append(*s, value)
-	return nil
-}
-
 func main() {
+	if len(os.Args) < 2 {
+		log.Println("Usage: linkd-import FILE")
+		os.Exit(1)
+	}
+	file := os.Args[1]
+	mappings, err := loadMapping(file)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	domain := parseDomain(file)
+
 	ctx := context.Background()
 
 	project := os.Getenv("DATASTORE_PROJECT")
 	creds := os.Getenv("DATASTORE_CREDS")
 
 	var client *datastore.Client
-	var err error
 
 	if project == "" {
 		log.Println("DATASTORE_PROJECT must be set")
@@ -47,15 +45,13 @@ func main() {
 		log.Println("Error setting up datastore client:", err.Error())
 		os.Exit(1)
 	}
-
-	s := server{
-		datastore: storers.NewDatastore(client),
-	}
-
-	http.Handle("/", &s)
-	err = http.ListenAndServe(":9876", nil)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	store := storers.NewDatastore(client)
+	for from, to := range mappings {
+		err := store.SetLink(ctx, domain, from, to)
+		if err != nil {
+			log.Printf("Error setting link %q to %q\n", domain+from, to)
+			os.Exit(1)
+		}
+		log.Printf("Set link %q to %q\n", domain+from, to)
 	}
 }

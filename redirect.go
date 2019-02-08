@@ -1,42 +1,35 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"log"
 	"net/http"
 	"strings"
-	"sync"
+
+	"github.com/carvers/linkd/storers"
 )
 
 type server struct {
-	mappings map[string]map[string]string
-	lock     sync.RWMutex
+	datastore storers.Datastore
 }
 
-func (s *server) matchURL(domain, path string) string {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
-	paths, ok := s.mappings[strings.ToLower(domain)]
-	if !ok {
-		return ""
-	}
-	return paths[path]
+func (s *server) matchURL(ctx context.Context, domain, path string) (string, error) {
+	return s.datastore.GetLink(ctx, domain, path)
 }
 
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	domain := r.Host
 	domain = strings.Split(domain, ":")[0]
-	fmt.Println(domain, r.URL.Path)
-	to := s.matchURL(domain, r.URL.Path)
-	if to == "" {
+	to, err := s.matchURL(r.Context(), domain, r.URL.Path)
+	if err == storers.ErrLinkNotFound {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("Not found"))
 		return
+	} else if err != nil {
+		log.Println("Error retrieving link:", err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Server error"))
+		return
 	}
 	http.Redirect(w, r, to, http.StatusMovedPermanently)
-}
-
-func (s *server) setMappings(m map[string]map[string]string) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	s.mappings = m
 }
