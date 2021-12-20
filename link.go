@@ -8,8 +8,9 @@ import (
 	"os"
 	"strings"
 
+	"carvers.dev/linkd/storers"
+
 	"cloud.google.com/go/datastore"
-	"github.com/carvers/linkd/storers"
 	"google.golang.org/api/option"
 )
 
@@ -29,12 +30,23 @@ func main() {
 
 	project := os.Getenv("DATASTORE_PROJECT")
 	creds := os.Getenv("DATASTORE_CREDS")
+	name := os.Getenv("ADMIN_PANEL_NAME")
+	adminDomain := os.Getenv("ADMIN_PANEL_DOMAIN")
 
 	var client *datastore.Client
 	var err error
 
 	if project == "" {
 		log.Println("DATASTORE_PROJECT must be set")
+		os.Exit(1)
+	}
+
+	if name == "" {
+		log.Println("ADMIN_PANEL_NAME must be set")
+		os.Exit(1)
+	}
+	if adminDomain == "" {
+		log.Println("ADMIN_DOMAIN must be set")
 		os.Exit(1)
 	}
 
@@ -49,7 +61,9 @@ func main() {
 	}
 
 	s := server{
-		datastore: storers.NewDatastore(client),
+		datastore:   storers.NewDatastore(client),
+		adminDomain: adminDomain,
+		name:        name,
 	}
 
 	http.Handle("/", &s)
