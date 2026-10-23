@@ -14,5 +14,5 @@ FROM alpine:3.21
 WORKDIR /app
 COPY --from=builder /app/linkd .
 EXPOSE 9876
-HEALTHCHECK --interval=60s --timeout=1s --start-period=5s CMD curl --fail --header http://localhost:9876/health || exit 1
+HEALTHCHECK --interval=60s --timeout=1s --start-period=5s CMD curl --fail http://localhost:9876/health || exit 1
 CMD ["./linkd"]
