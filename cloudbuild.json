@@ -8,8 +8,8 @@
 			"name": "gcr.io/cloud-builders/docker",
 			"args": [
 				"build",
-				"--build-arg BUILD_ID=${BUILD_ID}",
-				"--build-arg GIT_SHA=${SHORT_SHA}",
+				"--build-arg", "BUILD_ID=${BUILD_ID}",
+				"--build-arg", "GIT_SHA=${SHORT_SHA}",
 				"--tag=us-central1-docker.pkg.dev/${PROJECT_ID}/docker-main/linkd",
 				"."
 			]
