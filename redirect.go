@@ -21,6 +21,7 @@ func (s *server) matchURL(ctx context.Context, domain, path string) (string, err
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	domain := r.Host
 	domain, _, _ = strings.Cut(domain, ":")
+	domain = strings.TrimPrefix(domain, "www.")
 	to, err := s.matchURL(r.Context(), domain, r.URL.Path)
 	if errors.Is(err, storers.ErrLinkNotFound) {
 		w.WriteHeader(http.StatusNotFound)
