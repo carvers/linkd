@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"strings"
@@ -19,9 +20,9 @@ func (s *server) matchURL(ctx context.Context, domain, path string) (string, err
 
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	domain := r.Host
-	domain = strings.Split(domain, ":")[0]
+	domain, _, _ = strings.Cut(domain, ":")
 	to, err := s.matchURL(r.Context(), domain, r.URL.Path)
-	if err == storers.ErrLinkNotFound {
+	if errors.Is(err, storers.ErrLinkNotFound) {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("Not found"))
 		return

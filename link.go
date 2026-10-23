@@ -13,6 +13,8 @@ import (
 	"google.golang.org/api/option"
 )
 
+var BuildID, GitSHA string
+
 type stringSlice []string
 
 func (s *stringSlice) String() string {
@@ -25,6 +27,7 @@ func (s *stringSlice) Set(value string) error {
 }
 
 func main() {
+	log.Println("Using build ID", BuildID, "and git SHA", GitSHA)
 	ctx := context.Background()
 
 	project := os.Getenv("DATASTORE_PROJECT")
@@ -39,7 +42,7 @@ func main() {
 	}
 
 	if creds != "" {
-		client, err = datastore.NewClient(ctx, project, option.WithServiceAccountFile(creds))
+		client, err = datastore.NewClient(ctx, project, option.WithAuthCredentialsFile(option.ServiceAccount, creds))
 	} else {
 		client, err = datastore.NewClient(ctx, project)
 	}
@@ -52,6 +55,13 @@ func main() {
 		datastore: storers.NewDatastore(client),
 	}
 
+	http.HandleFunc("/version.txt", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		fmt.Fprintln(w, "Build", BuildID, "from", GitSHA)
+	})
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("OK"))
+	})
 	http.Handle("/", &s)
 	err = http.ListenAndServe(":9876", nil)
 	if err != nil {
